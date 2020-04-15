@@ -1,3 +1,24 @@
+'''
+    PRML Assignment 1
+    Spring 2020, Fudan University
+    18302010047 Dai Yuchun
+
+    you can run the code by the following command:
+    
+    Data generation(save to a.data as default):
+        
+        python source.py generate
+    
+    Run generative model(make sure that there is a data file):
+
+        python source.py generative_model
+    
+    Run discriminative model(make sure that there is a data file):
+
+        python source.py discriminative_model
+'''
+
+#package import
 import sys
 import math
 import argparse
@@ -5,6 +26,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 
 
+#data generation
 def data_generate(args):
     print('data generate\n')
 
@@ -24,7 +46,7 @@ def data_generate(args):
         for example in data:
             f.write(" ".join([str(*example[0][i]) for i in range(dim)])+" "+str(example[1])+"\n")              
 
-    #data visualization
+    # data visualization
 
     # def get_axis(items):
     #     x = [float(example[0][0]) for example in items]
@@ -36,7 +58,8 @@ def data_generate(args):
     # plt.scatter(*get_axis(list(filter(lambda x: x[1] == 2, data))), color='g', label='C', alpha=0.3)
     # plt.legend()
     # plt.show()
-    
+
+#generative model
 class GenerativeModel():
     def __init__(self, dim):
         self.labelNum = 3
@@ -73,7 +96,7 @@ class GenerativeModel():
                 acc[pre_labels[i]]+=1
                 acc[self.labelNum]+=1
         
-        with open(save_path, "w") as f:
+        with open(save_path, "a") as f:
             f.write('Total Accuracy: '+str(acc[self.labelNum]/n)+'\n')
             print('Total Accuracy: '+str(acc[self.labelNum]/n))
             for i in range(3):
@@ -81,6 +104,7 @@ class GenerativeModel():
                 print('Accuracy label '+str(i)+' '+str(acc[i]/app[i]))
 
 
+#generative model main function
 def generative_model(args):
     print('generative model\n')
 
@@ -95,9 +119,13 @@ def generative_model(args):
     test_data = data[int(len(data)*0.8):]
     model = GenerativeModel(dim=args.dim)
     model.train(train_data)
+    print('Train set:')
+    model.predict(train_data, args.save_path)
+    print('Test set:')
     model.predict(test_data, args.save_path)
 
 
+#discriminative model
 class DiscriminativeModel():
     def __init__(self, dim):
         self.labelNum = 3
@@ -120,6 +148,8 @@ class DiscriminativeModel():
         x = np.array([np.reshape(xx, (-1, 1)) for xx in x])
         y = np.array([example[1] for example in data])
 
+        # loss_p = []
+        # acc_p = []
         with open(save_path, 'w') as f:
             for epoch in range(epochs):
                 loss = 0
@@ -139,9 +169,21 @@ class DiscriminativeModel():
                         delta += np.matmul(y_[i], np.transpose(x_[i]))
 
                     self.W -= delta / batch * lr
+                # loss_p.append(float(loss))
+                # acc_p.append(float(ok)/n)
                 f.write(f'train epoch {epoch}: loss: {loss} Accuracy:{float(ok)/n}\n')
                 print(f'train epoch {epoch}: loss: {loss} Accuracy:{float(ok)/n}')
     
+        # train visualization
+        # x = list(range(epochs))
+        # plt.figure('accuracy rate')
+        # ax = plt.gca()
+        # ax.set_xlabel('epochs')
+        # ax.set_ylabel('accuracy rate')
+        # ax.plot(x, acc_p, color='b',linewidth=1, alpha=0.6)
+        # plt.show()
+
+
     def predict(self, data, save_path='gm_result.txt'):
         n = len(data)
         x = np.array([example[0] for example in data])
@@ -160,6 +202,7 @@ class DiscriminativeModel():
             f.write(f'test accuracy:{float(ok)/n}\n')
             print(f'test accuracy:{float(ok)/n}')
 
+#discriminative model main function
 def discriminative_model(args):
     print('discriminative model\n')
     data = []
@@ -175,7 +218,7 @@ def discriminative_model(args):
     model.train(train_data, epochs=args.epochs, lr=args.lr, save_path=args.save_path)
     model.predict(test_data, save_path=args.save_path)
 
-
+# main function
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='PRML assignment1.')
     subparser = parser.add_subparsers(help='some subfunctions')
